@@ -72,9 +72,7 @@ export async function GET(request: Request) {
         const validGifs = (data.gifs || []).map((g: any) => ({
             id: g.id,
             tags: g.tags || [],
-            thumbnail: g.urls?.thumbnail || g.urls?.poster || g.urls?.vthumbnail || g.urls?.sd || `https://thumbs44.redgifs.com/${g.id}-mobile.jpg`,
-            width: g.width || 320,
-            height: g.height || 480
+            thumbnail: g.urls?.thumbnail || g.urls?.poster || g.urls?.vthumbnail || g.urls?.sd || `https://thumbs44.redgifs.com/${g.id}-mobile.jpg`
         }));
 
         // Determine if there is a next page
