@@ -184,7 +184,7 @@
   .medium-rect-ad {
     scroll-snap-align: start;
     scroll-snap-stop: always;
-    height: calc(100svh - 114px);
+    height: calc(100dvh - 114px);
     width: 100%;
     margin: 0;
     border-radius: 0;
@@ -226,6 +226,8 @@ body {
 @media (max-width: 500px) {
   body {
     scroll-snap-type: y mandatory;
+    scroll-padding-top: 114px;
+    /* Account for Header(64) + FilterBar(50) */
     overscroll-behavior-y: contain;
   }
 }
@@ -564,8 +566,8 @@ a {
   .masonry-item {
     scroll-snap-align: start;
     scroll-snap-stop: always;
-    height: calc(100svh - 114px);
-    /* Full height minus header/filter */
+    height: calc(100dvh - 114px);
+    /* Use dvh for better mobile support */
     margin-bottom: 0;
     border-radius: 0;
     width: 100%;
