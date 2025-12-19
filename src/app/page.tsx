@@ -125,42 +125,36 @@ function BackToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const toggleVisibility = () => {
-      // Check multiple scroll sources since body might be the scroll container
-      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
-      if (scrollTop > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+    const checkScroll = () => {
+      // Get scroll position from body (the actual scroll container)
+      const scrollTop = document.body.scrollTop;
+      setIsVisible(scrollTop > 300);
     };
 
-    // Listen on both window and document
-    window.addEventListener('scroll', toggleVisibility, true);
-    document.addEventListener('scroll', toggleVisibility, true);
+    // Attach listener directly to body
+    const body = document.body;
+    body.addEventListener('scroll', checkScroll, { passive: true });
+
+    // Also poll every 500ms as fallback
+    const interval = setInterval(checkScroll, 500);
 
     // Check initial state
-    toggleVisibility();
+    checkScroll();
 
     return () => {
-      window.removeEventListener('scroll', toggleVisibility, true);
-      document.removeEventListener('scroll', toggleVisibility, true);
+      body.removeEventListener('scroll', checkScroll);
+      clearInterval(interval);
     };
   }, []);
 
   const scrollToTop = () => {
-    // Scroll both window and body to ensure it works
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     document.body.scrollTo({ top: 0, behavior: 'smooth' });
-    document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  if (!isVisible) return null;
 
   return (
     <button
       onClick={scrollToTop}
-      className="back-to-top"
+      className={`back-to-top ${isVisible ? 'visible' : ''}`}
       aria-label="Back to top"
     >
       ↑
@@ -233,8 +227,18 @@ function VideoCard({ gif }: { gif: GifItem }) {
             <img
               src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://media.redgifs.com/${gif.id}-mobile.jpg`)}`}
               alt={gif.id}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, backgroundColor: '#1a1a1a' }}
               loading="lazy"
+              onError={(e) => {
+                // Show a placeholder on error
+                const img = e.currentTarget;
+                img.style.display = 'none';
+                // Create placeholder
+                const placeholder = document.createElement('div');
+                placeholder.className = 'thumbnail-error';
+                placeholder.innerHTML = '▶';
+                img.parentElement?.appendChild(placeholder);
+              }}
             />
             {/* Play button overlay for mobile */}
             {isTouchDevice && (
@@ -449,6 +453,19 @@ export default function Home() {
           </header>
 
           <div className="filter-bar">
+            {/* Clear filter button - shows when search is active */}
+            {query && (
+              <div
+                className="filter-chip clear-chip"
+                onClick={() => {
+                  setQuery('');
+                  setSearchInput('');
+                  document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Clear ✕
+              </div>
+            )}
             {/* Premium Smartlink */}
             <a
               href="https://schemecontinuingwinning.com/vxt94pck0?key=f2328f74f27cb2b4efcb5bcf6b5a5493"

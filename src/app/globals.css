@@ -353,6 +353,19 @@ a {
   border-color: var(--accent);
 }
 
+/* Clear Filter Chip */
+.clear-chip {
+  background: #ff3b3b;
+  color: #fff !important;
+  border-color: #ff3b3b !important;
+  font-weight: 600;
+}
+
+.clear-chip:hover {
+  background: #cc2f2f;
+  border-color: #cc2f2f !important;
+}
+
 /* Premium Smartlink Chip */
 .premium-chip {
   background: linear-gradient(135deg, #ff6b00 0%, #ff0080 50%, #7c3aed 100%);
@@ -444,24 +457,20 @@ a {
   justify-content: center;
   box-shadow: 0 4px 20px rgba(249, 24, 128, 0.4);
   transition: all 0.3s ease;
-  animation: fadeIn 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .back-to-top:hover {
   transform: translateY(-5px) scale(1.1);
   box-shadow: 0 8px 30px rgba(249, 24, 128, 0.6);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (max-width: 600px) {
@@ -532,6 +541,21 @@ a {
   padding-top: 177.77%;
   /* Default to 9:16 aspect ratio (vertical video) */
   background: #111;
+}
+
+/* Thumbnail Error Placeholder */
+.thumbnail-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* If we supported variable aspect ratios, we'd set padding-top dynamically via inline styles */

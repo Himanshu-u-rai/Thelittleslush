@@ -2,8 +2,17 @@ import { NextResponse } from 'next/server';
 
 const REDGIFS_API_BASE = 'https://api.redgifs.com/v2';
 
-// Helper to get a temporary token
+// Token cache
+let cachedToken: string | null = null;
+let tokenExpiry: number = 0;
+
+// Helper to get a temporary token (cached for 1 hour)
 async function getAuthToken() {
+    // Return cached token if still valid
+    if (cachedToken && Date.now() < tokenExpiry) {
+        return cachedToken;
+    }
+
     try {
         const res = await fetch(`${REDGIFS_API_BASE}/auth/temporary`, {
             headers: {
@@ -18,7 +27,10 @@ async function getAuthToken() {
         }
 
         const data = await res.json();
-        return data.token;
+        cachedToken = data.token;
+        // Cache for 1 hour (tokens typically last longer but this is safe)
+        tokenExpiry = Date.now() + (60 * 60 * 1000);
+        return cachedToken;
     } catch (error) {
         console.error('Error fetching auth token:', error);
         return null;
