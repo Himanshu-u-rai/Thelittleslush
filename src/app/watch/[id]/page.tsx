@@ -1,9 +1,73 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+
+// 728x90 Leaderboard Banner Ad Component
+function LeaderboardAd() {
+    const [isWideEnough, setIsWideEnough] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const checkWidth = () => setIsWideEnough(window.innerWidth >= 768);
+        checkWidth();
+        window.addEventListener('resize', checkWidth);
+        return () => window.removeEventListener('resize', checkWidth);
+    }, []);
+
+    useEffect(() => {
+        if (isWideEnough && containerRef.current && containerRef.current.children.length === 0) {
+            (window as any).atOptions = {
+                'key': '3caad54b5cbc1f32886c0755b8ddec3c',
+                'format': 'iframe',
+                'height': 90,
+                'width': 728,
+                'params': {}
+            };
+            const script = document.createElement('script');
+            script.src = '//www.highperformanceformat.com/3caad54b5cbc1f32886c0755b8ddec3c/invoke.js';
+            script.async = true;
+            containerRef.current.appendChild(script);
+        }
+    }, [isWideEnough]);
+
+    if (!isWideEnough) return null;
+
+    return (
+        <div className="watch-ad-leaderboard">
+            <div ref={containerRef}></div>
+        </div>
+    );
+}
+
+// 300x250 Medium Rectangle Ad Component
+function MediumRectAd() {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (containerRef.current && containerRef.current.children.length === 0) {
+            (window as any).atOptions = {
+                'key': 'caad3414eba66bc32ad8167e0f3e70cd',
+                'format': 'iframe',
+                'height': 250,
+                'width': 300,
+                'params': {}
+            };
+            const script = document.createElement('script');
+            script.src = 'https://schemecontinuingwinning.com/caad3414eba66bc32ad8167e0f3e70cd/invoke.js';
+            script.async = true;
+            containerRef.current.appendChild(script);
+        }
+    }, []);
+
+    return (
+        <div className="watch-ad-medium-rect">
+            <div ref={containerRef}></div>
+        </div>
+    );
+}
 
 export default function WatchPage() {
     const params = useParams();
@@ -79,6 +143,9 @@ export default function WatchPage() {
                         </Link>
                     </nav>
 
+                    {/* Top Leaderboard Ad */}
+                    <LeaderboardAd />
+
                     <div className="video-wrapper">
                         <iframe
                             src={`https://www.redgifs.com/ifr/${id}?controls=1&autoplay=1`}
@@ -88,6 +155,20 @@ export default function WatchPage() {
                             allowFullScreen
                             className="video-player"
                         />
+                    </div>
+
+                    {/* Below Video Ads and CTA */}
+                    <div className="watch-below-video">
+                        <MediumRectAd />
+                        <a
+                            href="https://schemecontinuingwinning.com/vxt94pck0?key=f2328f74f27cb2b4efcb5bcf6b5a5493"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="premium-cta"
+                        >
+                            🔥 Explore More Premium Content
+                        </a>
+                        <LeaderboardAd />
                     </div>
                 </div>
             )}
