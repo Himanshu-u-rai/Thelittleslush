@@ -126,22 +126,33 @@ function BackToTopButton() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.scrollY > 300) {
+      // Check multiple scroll sources since body might be the scroll container
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+      if (scrollTop > 300) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
     };
 
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    // Listen on both window and document
+    window.addEventListener('scroll', toggleVisibility, true);
+    document.addEventListener('scroll', toggleVisibility, true);
+
+    // Check initial state
+    toggleVisibility();
+
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility, true);
+      document.removeEventListener('scroll', toggleVisibility, true);
+    };
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    // Scroll both window and body to ensure it works
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (!isVisible) return null;
