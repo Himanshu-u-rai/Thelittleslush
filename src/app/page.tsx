@@ -3,12 +3,44 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
 
 type GifItem = {
   id: string;
   tags: string[];
   thumbnail?: string;
 };
+
+// Native Banner Ad Component - Desktop Only
+function NativeBannerAd({ adIndex }: { adIndex: number }) {
+  const [isDesktop, setIsDesktop] = useState(false);
+  const containerId = `container-9be5fa9afc647dba020ba8bfd086706c-${adIndex}`;
+
+  useEffect(() => {
+    // Check if desktop (window width > 768px)
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth > 768);
+    };
+
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  if (!isDesktop) return null;
+
+  return (
+    <div className="native-ad-container">
+      <Script
+        async
+        data-cfasync="false"
+        src="https://schemecontinuingwinning.com/9be5fa9afc647dba020ba8bfd086706c/invoke.js"
+        strategy="lazyOnload"
+      />
+      <div id={containerId}></div>
+    </div>
+  );
+}
 
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -282,9 +314,14 @@ export default function Home() {
 
           <div className="main-content">
             <div className="masonry-grid">
-              {gifs.filter(g => !query || g.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))).map((gif, index) => (
-                <VideoCard key={`${gif.id}-${index}`} gif={gif} />
-              ))}
+              {gifs.filter(g => !query || g.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))).flatMap((gif, index) => {
+                const items = [<VideoCard key={`${gif.id}-${index}`} gif={gif} />];
+                // Insert a banner ad every 10 items (desktop only)
+                if ((index + 1) % 10 === 0) {
+                  items.push(<NativeBannerAd key={`ad-${index}`} adIndex={Math.floor(index / 10)} />);
+                }
+                return items;
+              })}
             </div>
 
             {gifs.length === 0 && !loading && (

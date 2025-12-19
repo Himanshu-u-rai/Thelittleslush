@@ -120,6 +120,28 @@
   margin-top: 8px !important;
 }
 
+/* Native Banner Ad Container - Desktop Only */
+.native-ad-container {
+  width: 100%;
+  column-span: all;
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+}
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+  .native-ad-container {
+    display: none !important;
+  }
+}
+
 html {
   margin: 0;
   padding: 0;
