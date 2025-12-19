@@ -9,6 +9,8 @@ type GifItem = {
   id: string;
   tags: string[];
   thumbnail?: string;
+  width?: number;
+  height?: number;
 };
 
 // Native Banner Ad Component - Desktop Only
@@ -180,6 +182,7 @@ function VideoCard({ gif }: { gif: GifItem }) {
       onMouseEnter={() => !isTouchDevice && setIsPlaying(true)}
       onMouseLeave={() => !isTouchDevice && setIsPlaying(false)}
       onTouchStart={handleTouchStart}
+      style={{ aspectRatio: gif.width && gif.height ? `${gif.width}/${gif.height}` : '9/16' }}
     >
       <div className="iframe-container" style={{ position: 'relative' }}>
         {isPlaying ? (
