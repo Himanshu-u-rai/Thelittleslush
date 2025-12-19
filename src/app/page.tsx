@@ -47,9 +47,21 @@ function VideoCard({ gif }: { gif: GifItem }) {
         ) : (
           <>
             <img
-              src={gif.thumbnail || `https://thumbs2.redgifs.com/${gif.id}.jpg`}
+              src={gif.thumbnail || `https://thumbs44.redgifs.com/${gif.id}-mobile.jpg`}
               alt={gif.id}
               style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+              onError={(e) => {
+                const img = e.currentTarget;
+                // Try different thumbnail CDNs
+                if (img.src.includes('thumbs44')) {
+                  img.src = `https://thumbs2.redgifs.com/${gif.id}-mobile.jpg`;
+                } else if (img.src.includes('thumbs2') && img.src.includes('-mobile')) {
+                  img.src = `https://thumbs2.redgifs.com/${gif.id}.jpg`;
+                } else {
+                  // Final fallback - use a placeholder
+                  img.src = `https://www.redgifs.com/watch/${gif.id}`;
+                }
+              }}
             />
             {/* Play button overlay for mobile */}
             {isTouchDevice && (
