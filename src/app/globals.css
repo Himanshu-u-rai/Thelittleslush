@@ -186,6 +186,24 @@
   align-items: center;
 }
 
+/* Stacked 300x250 Ads */
+.medium-rect-ad-stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.medium-rect-ad-stacked>div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 250px;
+}
+
 html {
   margin: 0;
   padding: 0;
