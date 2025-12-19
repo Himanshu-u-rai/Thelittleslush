@@ -42,6 +42,51 @@ function NativeBannerAd({ adIndex }: { adIndex: number }) {
   );
 }
 
+// 728x90 Leaderboard Banner Ad Component
+function LeaderboardBannerAd({ adIndex }: { adIndex: number }) {
+  const [isWideEnough, setIsWideEnough] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Only show on screens >= 768px (banner is 728px wide)
+    const checkWidth = () => {
+      setIsWideEnough(window.innerWidth >= 768);
+    };
+
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+    return () => window.removeEventListener('resize', checkWidth);
+  }, []);
+
+  useEffect(() => {
+    if (isWideEnough && containerRef.current) {
+      // Set up atOptions for this specific ad
+      (window as any).atOptions = {
+        'key': '3caad54b5cbc1f32886c0755b8ddec3c',
+        'format': 'iframe',
+        'height': 90,
+        'width': 728,
+        'params': {}
+      };
+
+      // Create and append script
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = '//www.highperformanceformat.com/3caad54b5cbc1f32886c0755b8ddec3c/invoke.js';
+      script.async = true;
+      containerRef.current.appendChild(script);
+    }
+  }, [isWideEnough, adIndex]);
+
+  if (!isWideEnough) return null;
+
+  return (
+    <div className="leaderboard-ad-container">
+      <div ref={containerRef} id={`leaderboard-ad-${adIndex}`}></div>
+    </div>
+  );
+}
+
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -322,12 +367,20 @@ export default function Home() {
           </div>
 
           <div className="main-content">
+            {/* Top Leaderboard Banner */}
+            <LeaderboardBannerAd adIndex={0} />
+
             <div className="masonry-grid">
               {gifs.filter(g => !query || g.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))).flatMap((gif, index) => {
                 const items = [<VideoCard key={`${gif.id}-${index}`} gif={gif} />];
-                // Insert a banner ad every 10 items (desktop only)
+                // Insert ads at regular intervals
                 if ((index + 1) % 10 === 0) {
-                  items.push(<NativeBannerAd key={`ad-${index}`} adIndex={Math.floor(index / 10)} />);
+                  // Alternate between native and leaderboard ads
+                  if (((index + 1) / 10) % 2 === 0) {
+                    items.push(<LeaderboardBannerAd key={`leaderboard-${index}`} adIndex={Math.floor(index / 10) + 1} />);
+                  } else {
+                    items.push(<NativeBannerAd key={`native-${index}`} adIndex={Math.floor(index / 10)} />);
+                  }
                 }
                 return items;
               })}
@@ -357,6 +410,8 @@ export default function Home() {
                   >
                     🔥 Explore More Premium Content
                   </a>
+                  {/* Bottom Leaderboard Banner */}
+                  <LeaderboardBannerAd adIndex={99} />
                 </div>
               )}
             </div>
