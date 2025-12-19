@@ -39,6 +39,10 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
+        <Script
+          src="https://schemecontinuingwinning.com/0f/ac/44/0fac4414f03bbabd87c051fcb182e716.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
