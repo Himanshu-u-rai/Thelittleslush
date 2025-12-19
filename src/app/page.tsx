@@ -163,31 +163,39 @@ function BackToTopButton() {
 }
 
 function VideoCard({ gif }: { gif: GifItem }) {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false); // Should the iframe exist in DOM?
+  const [isPlaying, setIsPlaying] = useState(false); // Should the iframe be visible and playing?
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Detect touch device
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouchDevice(isTouch);
 
-    // For mobile: auto-play when video is fully visible
     if (isTouch && cardRef.current) {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            // Play when 80% visible, pause when less visible
+            // Step 1: Pre-load (mount iframe) when video enters viewport (10% visible)
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
+              setIsLoaded(true);
+            } else if (!entry.isIntersecting) {
+              // Unmount completely when scrolled away to save memory
+              setIsLoaded(false);
+              setIsPlaying(false);
+            }
+
+            // Step 2: Play/Reveal when focused (80% visible)
             if (entry.isIntersecting && entry.intersectionRatio >= 0.8) {
               setIsPlaying(true);
-            } else if (!entry.isIntersecting || entry.intersectionRatio < 0.5) {
+            } else if (entry.intersectionRatio < 0.6) {
               setIsPlaying(false);
             }
           });
         },
         {
-          threshold: [0.5, 0.8, 1.0],
-          rootMargin: '0px'
+          threshold: [0.1, 0.6, 0.8],
+          rootMargin: '100px 0px' // Start loading slightly before it hits the viewport
         }
       );
 
@@ -197,9 +205,9 @@ function VideoCard({ gif }: { gif: GifItem }) {
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Toggle play state on tap (manual override)
     if (isTouchDevice) {
       e.preventDefault();
+      if (!isLoaded) setIsLoaded(true);
       setIsPlaying(prev => !prev);
     }
   };
@@ -208,46 +216,62 @@ function VideoCard({ gif }: { gif: GifItem }) {
     <div
       ref={cardRef}
       className="masonry-item"
-      onMouseEnter={() => !isTouchDevice && setIsPlaying(true)}
+      onMouseEnter={() => !isTouchDevice && (setIsLoaded(true), setIsPlaying(true))}
       onMouseLeave={() => !isTouchDevice && setIsPlaying(false)}
       onTouchStart={handleTouchStart}
     >
       <div className="iframe-container" style={{ position: 'relative' }}>
-        {isPlaying ? (
+        {isLoaded && (
           <iframe
             src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
             title={`RedGIFs ${gif.id}`}
             loading="eager"
             allowFullScreen
             scrolling="no"
-            style={{ pointerEvents: 'none', width: '100%', height: '100%', border: 'none' }}
+            style={{
+              pointerEvents: 'none',
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              opacity: isPlaying ? 1 : 0, // Keep iframe hidden until focused
+              transition: 'opacity 0.3s ease',
+              zIndex: isPlaying ? 2 : 1
+            }}
           />
-        ) : (
-          <>
-            <img
-              src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://media.redgifs.com/${gif.id}-mobile.jpg`)}`}
-              alt={gif.id}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, backgroundColor: '#1a1a1a' }}
-              loading="lazy"
-              onError={(e) => {
-                // Show a placeholder on error
-                const img = e.currentTarget;
-                img.style.display = 'none';
-                // Create placeholder
-                const placeholder = document.createElement('div');
-                placeholder.className = 'thumbnail-error';
-                placeholder.innerHTML = '▶';
-                img.parentElement?.appendChild(placeholder);
-              }}
-            />
-            {/* Play button overlay for mobile */}
-            {isTouchDevice && (
-              <div className="play-overlay">
-                <div className="play-icon">▶</div>
-              </div>
-            )}
-          </>
         )}
+
+        {/* Always keep thumbnail in background or visible until playing */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          opacity: isPlaying ? 0 : 1, // Fade out thumbnail when playing
+          transition: 'opacity 0.3s ease',
+          zIndex: 1
+        }}>
+          <img
+            src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://media.redgifs.com/${gif.id}-mobile.jpg`)}`}
+            alt={gif.id}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
+            loading="lazy"
+            onError={(e) => {
+              const img = e.currentTarget;
+              img.style.display = 'none';
+              const placeholder = document.createElement('div');
+              placeholder.className = 'thumbnail-error';
+              placeholder.innerHTML = '▶';
+              img.parentElement?.appendChild(placeholder);
+            }}
+          />
+          {/* Play button overlay for mobile */}
+          {isTouchDevice && !isPlaying && (
+            <div className="play-overlay">
+              <div className="play-icon">▶</div>
+            </div>
+          )}
+        </div>
         {/* Only show link overlay when not playing on touch device - allows tap to stop */}
         {(!isTouchDevice || !isPlaying) && (
           <Link
