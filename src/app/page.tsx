@@ -87,56 +87,35 @@ function LeaderboardBannerAd({ adIndex }: { adIndex: number }) {
   );
 }
 
-// 300x250 Medium Rectangle Ad Component - Stacked pair for better height matching
+// 300x250 Medium Rectangle Ad Component - Fits in masonry columns
 function MediumRectangleAd({ adIndex }: { adIndex: number }) {
-  const containerRef1 = useRef<HTMLDivElement>(null);
-  const containerRef2 = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    if (!hasLoaded) {
-      // Load first ad
-      if (containerRef1.current && containerRef1.current.children.length === 0) {
-        (window as any).atOptions = {
-          'key': 'caad3414eba66bc32ad8167e0f3e70cd',
-          'format': 'iframe',
-          'height': 250,
-          'width': 300,
-          'params': {}
-        };
-        const script1 = document.createElement('script');
-        script1.type = 'text/javascript';
-        script1.src = 'https://schemecontinuingwinning.com/caad3414eba66bc32ad8167e0f3e70cd/invoke.js';
-        script1.async = true;
-        containerRef1.current.appendChild(script1);
-      }
+    if (containerRef.current && !hasLoaded) {
+      // Set up atOptions for this specific ad
+      (window as any).atOptions = {
+        'key': 'caad3414eba66bc32ad8167e0f3e70cd',
+        'format': 'iframe',
+        'height': 250,
+        'width': 300,
+        'params': {}
+      };
 
-      // Load second ad after a small delay
-      setTimeout(() => {
-        if (containerRef2.current && containerRef2.current.children.length === 0) {
-          (window as any).atOptions = {
-            'key': 'caad3414eba66bc32ad8167e0f3e70cd',
-            'format': 'iframe',
-            'height': 250,
-            'width': 300,
-            'params': {}
-          };
-          const script2 = document.createElement('script');
-          script2.type = 'text/javascript';
-          script2.src = 'https://schemecontinuingwinning.com/caad3414eba66bc32ad8167e0f3e70cd/invoke.js';
-          script2.async = true;
-          containerRef2.current.appendChild(script2);
-        }
-      }, 100);
-
+      // Create and append script
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = 'https://schemecontinuingwinning.com/caad3414eba66bc32ad8167e0f3e70cd/invoke.js';
+      script.async = true;
+      containerRef.current.appendChild(script);
       setHasLoaded(true);
     }
   }, [adIndex, hasLoaded]);
 
   return (
-    <div className="masonry-item medium-rect-ad-stacked">
-      <div ref={containerRef1} id={`medium-rect-ad-${adIndex}-1`}></div>
-      <div ref={containerRef2} id={`medium-rect-ad-${adIndex}-2`}></div>
+    <div className="masonry-item medium-rect-ad">
+      <div ref={containerRef} id={`medium-rect-ad-${adIndex}`}></div>
     </div>
   );
 }
