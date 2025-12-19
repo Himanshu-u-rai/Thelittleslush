@@ -171,14 +171,39 @@ function BackToTopButton() {
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Detect touch device
-    setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    setIsTouchDevice(isTouch);
+
+    // For mobile: auto-play when video is fully visible
+    if (isTouch && cardRef.current) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            // Play when 80% visible, pause when less visible
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.8) {
+              setIsPlaying(true);
+            } else if (!entry.isIntersecting || entry.intersectionRatio < 0.5) {
+              setIsPlaying(false);
+            }
+          });
+        },
+        {
+          threshold: [0.5, 0.8, 1.0],
+          rootMargin: '0px'
+        }
+      );
+
+      observer.observe(cardRef.current);
+      return () => observer.disconnect();
+    }
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Toggle play state on touch
+    // Toggle play state on tap (manual override)
     if (isTouchDevice) {
       e.preventDefault();
       setIsPlaying(prev => !prev);
@@ -187,6 +212,7 @@ function VideoCard({ gif }: { gif: GifItem }) {
 
   return (
     <div
+      ref={cardRef}
       className="masonry-item"
       onMouseEnter={() => !isTouchDevice && setIsPlaying(true)}
       onMouseLeave={() => !isTouchDevice && setIsPlaying(false)}
