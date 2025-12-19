@@ -87,6 +87,39 @@ function LeaderboardBannerAd({ adIndex }: { adIndex: number }) {
   );
 }
 
+// 300x250 Medium Rectangle Ad Component - Fits in masonry columns
+function MediumRectangleAd({ adIndex }: { adIndex: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    if (containerRef.current && !hasLoaded) {
+      // Set up atOptions for this specific ad
+      (window as any).atOptions = {
+        'key': 'caad3414eba66bc32ad8167e0f3e70cd',
+        'format': 'iframe',
+        'height': 250,
+        'width': 300,
+        'params': {}
+      };
+
+      // Create and append script
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = 'https://schemecontinuingwinning.com/caad3414eba66bc32ad8167e0f3e70cd/invoke.js';
+      script.async = true;
+      containerRef.current.appendChild(script);
+      setHasLoaded(true);
+    }
+  }, [adIndex, hasLoaded]);
+
+  return (
+    <div className="masonry-item medium-rect-ad">
+      <div ref={containerRef} id={`medium-rect-ad-${adIndex}`}></div>
+    </div>
+  );
+}
+
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -374,6 +407,11 @@ export default function Home() {
               {gifs.filter(g => !query || g.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))).flatMap((gif, index) => {
                 const items = [<VideoCard key={`${gif.id}-${index}`} gif={gif} />];
                 // Insert ads at regular intervals
+                // Insert 300x250 ad every 5 items (fits in masonry column)
+                if ((index + 1) % 5 === 0 && (index + 1) % 10 !== 0) {
+                  items.push(<MediumRectangleAd key={`medium-rect-${index}`} adIndex={Math.floor(index / 5)} />);
+                }
+                // Insert banner ads every 10 items
                 if ((index + 1) % 10 === 0) {
                   // Alternate between native and leaderboard ads
                   if (((index + 1) / 10) % 2 === 0) {
