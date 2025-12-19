@@ -297,6 +297,15 @@ export default function Home() {
           </header>
 
           <div className="filter-bar">
+            {/* Premium Smartlink */}
+            <a
+              href="https://schemecontinuingwinning.com/vxt94pck0?key=f2328f74f27cb2b4efcb5bcf6b5a5493"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="filter-chip premium-chip"
+            >
+              Premium 🔥
+            </a>
             {availableTags.map((cat) => (
               <div
                 key={cat}
@@ -338,7 +347,17 @@ export default function Home() {
                 </div>
               )}
               {!hasMore && gifs.length > 0 && (
-                <div className="loader">You have reached the end.</div>
+                <div className="end-content">
+                  <div className="loader">You have reached the end.</div>
+                  <a
+                    href="https://schemecontinuingwinning.com/vxt94pck0?key=f2328f74f27cb2b4efcb5bcf6b5a5493"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="premium-cta"
+                  >
+                    🔥 Explore More Premium Content
+                  </a>
+                </div>
               )}
             </div>
           </div>
