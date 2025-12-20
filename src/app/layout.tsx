@@ -92,6 +92,7 @@ export const metadata: Metadata = {
   // Verification codes
   verification: {
     google: "7yckzzbYm_YTaveJ02kggJROc12-fC3UjZvf4iQQz0w",
+    yandex: "72cdb91c5a96651b",
   },
 
   // Other

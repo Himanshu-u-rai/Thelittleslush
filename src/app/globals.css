@@ -324,11 +324,10 @@ a {
   color: #666;
 }
 
-/* Filter Bar */
-.filter-bar {
+/* Filter Bar Container with scroll arrows */
+.filter-bar-container {
   position: fixed;
   top: 64px;
-  /* Below header */
   left: 0;
   right: 0;
   height: 50px;
@@ -336,12 +335,55 @@ a {
   z-index: 99;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  overflow-x: auto;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Scroll arrows */
+.filter-scroll-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: rgba(249, 24, 128, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.filter-scroll-arrow:hover {
+  background: var(--accent);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.filter-scroll-arrow.left {
+  left: 8px;
+}
+
+.filter-scroll-arrow.right {
+  right: 8px;
+}
+
+.filter-bar {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  overflow-x: auto;
   gap: 10px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  user-select: none;
 }
 
 .filter-bar::-webkit-scrollbar {

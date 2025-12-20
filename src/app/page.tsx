@@ -162,6 +162,154 @@ function BackToTopButton() {
   );
 }
 
+// Filter Bar with drag-to-scroll functionality
+function FilterBar({
+  query,
+  setQuery,
+  setSearchInput,
+  availableTags,
+}: {
+  query: string;
+  setQuery: (q: string) => void;
+  setSearchInput: (s: string) => void;
+  availableTags: string[];
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  const updateArrows = useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  }, []);
+
+  useEffect(() => {
+    updateArrows();
+    window.addEventListener('resize', updateArrows);
+    return () => window.removeEventListener('resize', updateArrows);
+  }, [updateArrows]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    scrollRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+    updateArrows();
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const scrollByAmount = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const amount = direction === 'left' ? -200 : 200;
+      scrollRef.current.scrollBy({ left: amount, behavior: 'smooth' });
+      setTimeout(updateArrows, 300);
+    }
+  };
+
+  return (
+    <div className="filter-bar-container">
+      {/* Left scroll arrow */}
+      {showLeftArrow && (
+        <button
+          className="filter-scroll-arrow left"
+          onClick={() => scrollByAmount('left')}
+          aria-label="Scroll left"
+        >
+          ‹
+        </button>
+      )}
+
+      <div
+        ref={scrollRef}
+        className="filter-bar"
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onScroll={updateArrows}
+        style={{ cursor: 'grab' }}
+      >
+        {/* Clear filter button */}
+        {query && (
+          <div
+            className="filter-chip clear-chip"
+            onClick={() => {
+              setQuery('');
+              setSearchInput('');
+              document.body.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            Clear ✕
+          </div>
+        )}
+        {/* Premium Smartlink */}
+        <a
+          href="https://schemecontinuingwinning.com/vxt94pck0?key=f2328f74f27cb2b4efcb5bcf6b5a5493"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="filter-chip premium-chip"
+        >
+          Premium 🔥
+        </a>
+        {availableTags.map((cat) => (
+          <div
+            key={cat}
+            className={`filter-chip ${query.toLowerCase() === cat.toLowerCase() ? 'active' : ''}`}
+            onClick={() => {
+              if (!isDragging) {
+                setQuery(cat);
+                setSearchInput(cat);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
+            {cat}
+          </div>
+        ))}
+      </div>
+
+      {/* Right scroll arrow */}
+      {showRightArrow && (
+        <button
+          className="filter-scroll-arrow right"
+          onClick={() => scrollByAmount('right')}
+          aria-label="Scroll right"
+        >
+          ›
+        </button>
+      )}
+    </div>
+  );
+}
+
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isLoaded, setIsLoaded] = useState(false); // Should the iframe exist in DOM?
   const [isPlaying, setIsPlaying] = useState(false); // Should the iframe be visible and playing?
@@ -515,43 +663,12 @@ export default function Home() {
             </Link>
           </header>
 
-          <div className="filter-bar">
-            {/* Clear filter button - shows when search is active */}
-            {query && (
-              <div
-                className="filter-chip clear-chip"
-                onClick={() => {
-                  setQuery('');
-                  setSearchInput('');
-                  document.body.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              >
-                Clear ✕
-              </div>
-            )}
-            {/* Premium Smartlink */}
-            <a
-              href="https://schemecontinuingwinning.com/vxt94pck0?key=f2328f74f27cb2b4efcb5bcf6b5a5493"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="filter-chip premium-chip"
-            >
-              Premium 🔥
-            </a>
-            {availableTags.map((cat) => (
-              <div
-                key={cat}
-                className={`filter-chip ${query.toLowerCase() === cat.toLowerCase() ? 'active' : ''}`}
-                onClick={() => {
-                  setQuery(cat);
-                  setSearchInput(cat);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              >
-                {cat}
-              </div>
-            ))}
-          </div>
+          <FilterBar
+            query={query}
+            setQuery={setQuery}
+            setSearchInput={setSearchInput}
+            availableTags={availableTags}
+          />
 
           <div className="main-content">
             {/* Top Leaderboard Banner */}
