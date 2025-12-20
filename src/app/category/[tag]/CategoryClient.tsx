@@ -17,30 +17,7 @@ type GifResponse = {
     total?: number;
 };
 
-// Breadcrumb Component
-function Breadcrumbs({ category }: { category: string }) {
-    const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-
-    return (
-        <nav className="breadcrumbs" aria-label="Breadcrumb">
-            <ol itemScope itemType="https://schema.org/BreadcrumbList">
-                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                    <Link href="/" itemProp="item">
-                        <span itemProp="name">Home</span>
-                    </Link>
-                    <meta itemProp="position" content="1" />
-                    <span className="breadcrumb-separator">›</span>
-                </li>
-                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
-                    <span itemProp="name" className="breadcrumb-current">{formattedCategory}</span>
-                    <meta itemProp="position" content="2" />
-                </li>
-            </ol>
-        </nav>
-    );
-}
-
-// Video Card Component
+// Video Card Component - Simplified for category pages
 function VideoCard({ gif, category }: { gif: GifItem; category: string }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -76,86 +53,62 @@ function VideoCard({ gif, category }: { gif: GifItem; category: string }) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Mobile: Show thumbnail with play button, tap to navigate
     if (isMobile) {
         return (
-            <div ref={cardRef} className="masonry-item">
-                <div className="iframe-container" style={{ position: 'relative' }}>
-                    {isLoaded && (
-                        <iframe
-                            src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
-                            title={`${category} video - ${gif.id}`}
-                            loading="eager"
-                            allowFullScreen
-                            scrolling="no"
-                            style={{ pointerEvents: 'none', width: '100%', height: '100%', border: 'none', opacity: 1, zIndex: 1 }}
-                        />
-                    )}
-                    {!isLoaded && (
-                        <div className="mobile-loading-placeholder">
-                            <div className="loading-spinner"></div>
-                        </div>
-                    )}
-                    <Link
-                        href={`/watch/${gif.id}`}
-                        className="mobile-tap-overlay"
-                        style={{
-                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                            zIndex: 10, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                            paddingBottom: '20px', background: 'linear-gradient(transparent 70%, rgba(0,0,0,0.6) 100%)',
-                        }}
-                    >
-                        <span className="mobile-watch-btn">Tap to Watch Full ▶</span>
-                    </Link>
+            <Link href={`/watch/${gif.id}`} className="category-video-card">
+                <img
+                    src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://thumbs44.redgifs.com/${gif.id}-mobile.jpg`)}`}
+                    alt={`${category} video`}
+                    loading="lazy"
+                />
+                <div className="category-video-overlay">
+                    <span className="play-btn">▶</span>
                 </div>
-            </div>
+            </Link>
         );
     }
 
+    // Desktop: Hover to preview
     return (
         <div
             ref={cardRef}
-            className="masonry-item"
+            className="category-video-card"
             onMouseEnter={() => { setIsLoaded(true); setIsPlaying(true); }}
             onMouseLeave={() => setIsPlaying(false)}
         >
-            <div className="iframe-container" style={{ position: 'relative' }}>
-                {isLoaded && (
-                    <iframe
-                        src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
-                        title={`${category} video - ${gif.id}`}
-                        loading="eager"
-                        allowFullScreen
-                        scrolling="no"
-                        style={{
-                            pointerEvents: 'none', width: '100%', height: '100%', border: 'none',
-                            opacity: isPlaying ? 1 : 0, transition: 'opacity 0.3s ease', zIndex: isPlaying ? 2 : 1
-                        }}
-                    />
-                )}
-                <div style={{
-                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                    opacity: isPlaying ? 0 : 1, transition: 'opacity 0.3s ease', zIndex: 1
-                }}>
-                    <img
-                        src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://media.redgifs.com/${gif.id}-mobile.jpg`)}`}
-                        alt={`${category} video thumbnail`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
-                        loading="lazy"
-                    />
-                    <div className="play-overlay">
-                        <div className="play-icon">▶</div>
-                    </div>
-                </div>
-                <Link
-                    href={`/watch/${gif.id}`}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, cursor: 'pointer' }}
+            {isLoaded && isPlaying && (
+                <iframe
+                    src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
+                    title={`${category} video - ${gif.id}`}
+                    loading="eager"
+                    allowFullScreen
+                    scrolling="no"
+                    style={{
+                        position: 'absolute', top: 0, left: 0,
+                        pointerEvents: 'none', width: '100%', height: '100%', border: 'none',
+                        zIndex: 2
+                    }}
                 />
+            )}
+            <img
+                src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://thumbs44.redgifs.com/${gif.id}-mobile.jpg`)}`}
+                alt={`${category} video thumbnail`}
+                loading="lazy"
+                style={{ opacity: isPlaying ? 0 : 1, transition: 'opacity 0.3s' }}
+            />
+            <div className="category-video-overlay" style={{ opacity: isPlaying ? 0 : 1 }}>
+                <span className="play-btn">▶</span>
             </div>
+            <Link
+                href={`/watch/${gif.id}`}
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10 }}
+            />
         </div>
     );
 }
 
-// Related Categories Component
+// Related Categories Component (Horizontal scrollable)
 function RelatedCategories({ currentCategory }: { currentCategory: string }) {
     const allCategories = [
         'amateur', 'asian', 'blonde', 'brunette', 'redhead', 'teen', 'milf',
@@ -165,18 +118,18 @@ function RelatedCategories({ currentCategory }: { currentCategory: string }) {
 
     const related = allCategories
         .filter(cat => cat.toLowerCase() !== currentCategory.toLowerCase())
-        .slice(0, 10);
+        .slice(0, 12);
 
     return (
-        <div className="related-categories">
-            <h3>Related Categories</h3>
-            <div className="related-tags">
-                {related.map((cat) => (
-                    <Link key={cat} href={`/category/${cat}`} className="related-tag">
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </Link>
-                ))}
-            </div>
+        <div className="category-filter-bar">
+            <Link href="/" className="category-filter-chip home-chip">
+                ← Home
+            </Link>
+            {related.map((cat) => (
+                <Link key={cat} href={`/category/${cat}`} className="category-filter-chip">
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </Link>
+            ))}
         </div>
     );
 }
@@ -192,6 +145,7 @@ export default function CategoryClient() {
     const [nextPage, setNextPage] = useState<string | null>(null);
     const [isAgeVerified, setIsAgeVerified] = useState<boolean | null>(null);
     const [showAgeModal, setShowAgeModal] = useState(false);
+    const loadMoreRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const verified = localStorage.getItem('ageVerified');
@@ -236,15 +190,27 @@ export default function CategoryClient() {
 
     useEffect(() => {
         if (isAgeVerified) {
-            fetchGifs();
+            setGifs([]);
+            fetchGifs('1');
         }
-    }, [isAgeVerified, fetchGifs]);
+    }, [isAgeVerified, fetchGifs, tag]);
 
-    const loadMore = () => {
-        if (nextPage) {
-            fetchGifs(nextPage);
-        }
-    };
+    // Infinite scroll
+    useEffect(() => {
+        if (!loadMoreRef.current || !nextPage) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && nextPage && !loading) {
+                    fetchGifs(nextPage);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        observer.observe(loadMoreRef.current);
+        return () => observer.disconnect();
+    }, [nextPage, loading, fetchGifs]);
 
     return (
         <>
@@ -265,58 +231,49 @@ export default function CategoryClient() {
             )}
 
             {isAgeVerified && (
-                <div className="category-page">
-                    {/* Header */}
-                    <header className="category-header">
-                        <Link href="/" className="logo-link">
-                            <Image src="/logo.png" alt="TheLittleSlush" width={180} height={40} style={{ objectFit: 'contain', height: '32px', width: 'auto' }} priority />
+                <div className="category-page-v2">
+                    {/* Fixed Header */}
+                    <header className="category-header-v2">
+                        <Link href="/" className="category-logo">
+                            <Image src="/logo.png" alt="TheLittleSlush" width={140} height={32} style={{ objectFit: 'contain', height: '28px', width: 'auto' }} priority />
                         </Link>
+                        <h1 className="category-title-v2">{formattedTag}</h1>
                     </header>
 
-                    {/* Breadcrumbs */}
-                    <Breadcrumbs category={tag} />
-
-                    {/* Category Hero */}
-                    <div className="category-hero">
-                        <h1>{formattedTag} Videos</h1>
-                        <p className="category-description">
-                            Browse the best {formattedTag.toLowerCase()} adult videos and GIFs.
-                            Stream free {formattedTag.toLowerCase()} content in HD quality, updated daily.
-                        </p>
-                    </div>
-
-                    {/* Related Categories */}
+                    {/* Fixed Filter Bar */}
                     <RelatedCategories currentCategory={tag} />
 
-                    {/* Video Grid */}
-                    <div className="category-content">
+                    {/* Content Area */}
+                    <main className="category-main">
+                        {/* SEO Description (visible but compact) */}
+                        <p className="category-seo-text">
+                            Free {formattedTag.toLowerCase()} videos • Updated daily • HD quality
+                        </p>
+
                         {loading && gifs.length === 0 ? (
-                            <div className="loader">Loading {formattedTag.toLowerCase()} videos...</div>
+                            <div className="category-loader">
+                                <div className="loading-spinner"></div>
+                                <p>Loading {formattedTag.toLowerCase()} videos...</p>
+                            </div>
                         ) : error ? (
-                            <div className="error-message">{error}</div>
+                            <div className="category-error">{error}</div>
                         ) : gifs.length === 0 ? (
-                            <div className="no-results">No {formattedTag.toLowerCase()} videos found</div>
+                            <div className="category-empty">No {formattedTag.toLowerCase()} videos found</div>
                         ) : (
                             <>
-                                <div className="masonry-grid">
+                                <div className="category-grid">
                                     {gifs.map((gif) => (
                                         <VideoCard key={gif.id} gif={gif} category={tag} />
                                     ))}
                                 </div>
 
-                                {nextPage && (
-                                    <button className="load-more-btn" onClick={loadMore} disabled={loading}>
-                                        {loading ? 'Loading...' : 'Load More'}
-                                    </button>
-                                )}
+                                {/* Load more trigger */}
+                                <div ref={loadMoreRef} className="load-more-trigger">
+                                    {loading && <div className="loading-spinner"></div>}
+                                </div>
                             </>
                         )}
-                    </div>
-
-                    {/* Back to Home */}
-                    <div className="category-footer">
-                        <Link href="/" className="back-home-link">← Back to Home</Link>
-                    </div>
+                    </main>
                 </div>
             )}
         </>
