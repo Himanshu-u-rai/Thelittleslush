@@ -165,60 +165,114 @@ function BackToTopButton() {
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isLoaded, setIsLoaded] = useState(false); // Should the iframe exist in DOM?
   const [isPlaying, setIsPlaying] = useState(false); // Should the iframe be visible and playing?
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    setIsTouchDevice(isTouch);
+    // Check if mobile based on screen width (matches CSS breakpoint)
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 500);
+    };
 
-    if (isTouch && cardRef.current) {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // For mobile: use intersection observer to auto-play when in view
+    if (cardRef.current) {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            // Step 1: Pre-load (mount iframe) when video enters viewport (10% visible)
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
               setIsLoaded(true);
-            } else if (!entry.isIntersecting) {
-              // Unmount completely when scrolled away to save memory
-              setIsLoaded(false);
-              setIsPlaying(false);
-            }
-
-            // Step 2: Play/Reveal when focused (80% visible)
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.8) {
               setIsPlaying(true);
-            } else if (entry.intersectionRatio < 0.6) {
+            } else if (!entry.isIntersecting) {
+              // Unload when scrolled away to save memory
+              setIsLoaded(false);
               setIsPlaying(false);
             }
           });
         },
         {
-          threshold: [0.1, 0.6, 0.8],
-          rootMargin: '100px 0px' // Start loading slightly before it hits the viewport
+          threshold: [0.5],
+          rootMargin: '50px 0px'
         }
       );
 
       observer.observe(cardRef.current);
-      return () => observer.disconnect();
+      return () => {
+        observer.disconnect();
+        window.removeEventListener('resize', checkMobile);
+      };
     }
+
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isTouchDevice) {
-      e.preventDefault();
-      if (!isLoaded) setIsLoaded(true);
-      setIsPlaying(prev => !prev);
-    }
-  };
+  // MOBILE VIEW: Simple layout with iframe and tap-to-navigate
+  if (isMobile) {
+    return (
+      <div ref={cardRef} className="masonry-item">
+        <div className="iframe-container" style={{ position: 'relative' }}>
+          {/* Iframe loads when in viewport */}
+          {isLoaded && (
+            <iframe
+              src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
+              title={`RedGIFs ${gif.id}`}
+              loading="eager"
+              allowFullScreen
+              scrolling="no"
+              style={{
+                pointerEvents: 'none',
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                opacity: 1,
+                zIndex: 1
+              }}
+            />
+          )}
 
+          {/* Loading placeholder when iframe not yet loaded */}
+          {!isLoaded && (
+            <div className="mobile-loading-placeholder">
+              <div className="loading-spinner"></div>
+            </div>
+          )}
+
+          {/* Simple tap overlay - always navigates to watch page */}
+          <Link
+            href={`/watch/${gif.id}`}
+            className="mobile-tap-overlay"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              paddingBottom: '20px',
+              background: 'linear-gradient(transparent 70%, rgba(0,0,0,0.6) 100%)',
+            }}
+          >
+            <span className="mobile-watch-btn">
+              Tap to Watch Full ▶
+            </span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // DESKTOP VIEW: Thumbnail with hover-to-preview
   return (
     <div
       ref={cardRef}
       className="masonry-item"
-      onMouseEnter={() => !isTouchDevice && (setIsLoaded(true), setIsPlaying(true))}
-      onMouseLeave={() => !isTouchDevice && setIsPlaying(false)}
-      onTouchStart={handleTouchStart}
+      onMouseEnter={() => { setIsLoaded(true); setIsPlaying(true); }}
+      onMouseLeave={() => setIsPlaying(false)}
     >
       <div className="iframe-container" style={{ position: 'relative' }}>
         {isLoaded && (
@@ -233,21 +287,21 @@ function VideoCard({ gif }: { gif: GifItem }) {
               width: '100%',
               height: '100%',
               border: 'none',
-              opacity: isPlaying ? 1 : 0, // Keep iframe hidden until focused
+              opacity: isPlaying ? 1 : 0,
               transition: 'opacity 0.3s ease',
               zIndex: isPlaying ? 2 : 1
             }}
           />
         )}
 
-        {/* Always keep thumbnail in background or visible until playing */}
+        {/* Thumbnail - only shown on desktop */}
         <div style={{
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
           height: '100%',
-          opacity: isPlaying ? 0 : 1, // Fade out thumbnail when playing
+          opacity: isPlaying ? 0 : 1,
           transition: 'opacity 0.3s ease',
           zIndex: 1
         }}>
@@ -265,44 +319,25 @@ function VideoCard({ gif }: { gif: GifItem }) {
               img.parentElement?.appendChild(placeholder);
             }}
           />
-          {/* Play button overlay for mobile */}
-          {isTouchDevice && !isPlaying && (
-            <div className="play-overlay">
-              <div className="play-icon">▶</div>
-            </div>
-          )}
+          {/* Play icon overlay on thumbnail */}
+          <div className="play-overlay">
+            <div className="play-icon">▶</div>
+          </div>
         </div>
-        {/* Only show link overlay when not playing on touch device - allows tap to stop */}
-        {(!isTouchDevice || !isPlaying) && (
-          <Link
-            href={`/watch/${gif.id}`}
-            onClick={(e) => {
-              if (isTouchDevice && !isPlaying) {
-                // First tap plays preview, don't navigate
-                e.preventDefault();
-              }
-              // If already playing on touch device, allow navigation
-            }}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              zIndex: 10,
-              cursor: 'pointer'
-            }}
-          />
-        )}
-        {/* Show "Watch Full" button when playing on mobile */}
-        {isTouchDevice && isPlaying && (
-          <Link
-            href={`/watch/${gif.id}`}
-            className="watch-full-btn"
-          >
-            Watch Full ▶
-          </Link>
-        )}
+
+        {/* Click to watch overlay - desktop */}
+        <Link
+          href={`/watch/${gif.id}`}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 10,
+            cursor: 'pointer'
+          }}
+        />
       </div>
     </div>
   );
@@ -474,6 +509,10 @@ export default function Home() {
                 onChange={(e) => setSearchInput(e.target.value)}
               />
             </form>
+            <Link href="/policies" className="policies-btn">
+              <span className="policies-btn-icon">📋</span>
+              <span>User Policies</span>
+            </Link>
           </header>
 
           <div className="filter-bar">

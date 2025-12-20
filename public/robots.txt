@@ -1,0 +1,51 @@
+# Robots.txt for thelittleslush.fun
+# Adult content site - optimized for search engine indexing
+
+# Allow all search engines
+User-agent: *
+Allow: /
+Allow: /policies
+Allow: /watch/
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Crawl delay to be friendly to servers
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://thelittleslush.fun/sitemap.xml
+
+# Google-specific rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Bing-specific rules
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Yandex (popular for adult content)
+User-agent: Yandex
+Allow: /
+Crawl-delay: 2
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# Block AI training bots (optional - protects content)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
