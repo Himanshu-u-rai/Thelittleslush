@@ -16,7 +16,7 @@ Disallow: /admin/
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://thelittleslush.fun/sitemap.xml
+Sitemap: https://www.thelittleslush.fun/sitemap.xml
 
 # Google-specific rules
 User-agent: Googlebot

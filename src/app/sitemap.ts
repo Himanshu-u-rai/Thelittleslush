@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://thelittleslush.fun';
+    const baseUrl = 'https://www.thelittleslush.fun';
     const currentDate = new Date().toISOString();
 
     // Static pages
