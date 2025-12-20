@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title: `Watch ${formattedId} - TheLittleSlush`,
             description: `Stream this free adult video in HD. 18+ only.`,
             type: 'video.other',
-            url: `https://thelittleslush.fun/watch/${id}`,
+            url: `https://www.thelittleslush.fun/watch/${id}`,
         },
         twitter: {
             card: 'summary',
@@ -34,11 +34,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             description: 'Stream free adult content on TheLittleSlush. 18+ only.',
         },
         alternates: {
-            canonical: `https://thelittleslush.fun/watch/${id}`,
+            canonical: `https://www.thelittleslush.fun/watch/${id}`,
         },
         other: {
             'rating': 'adult',
         },
+    };
+}
+
+// Video Schema JSON-LD component
+export function generateVideoSchema(id: string, formattedId: string) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        'name': formattedId,
+        'description': `Watch ${formattedId} - Free adult video on TheLittleSlush`,
+        'thumbnailUrl': `https://thumbs44.redgifs.com/${id}-mobile.jpg`,
+        'uploadDate': new Date().toISOString(),
+        'contentUrl': `https://www.redgifs.com/watch/${id}`,
+        'embedUrl': `https://www.redgifs.com/ifr/${id}`,
+        'publisher': {
+            '@type': 'Organization',
+            'name': 'TheLittleSlush',
+            'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://www.thelittleslush.fun/logo.png'
+            }
+        },
+        'isFamilyFriendly': false,
+        'inLanguage': 'en'
     };
 }
 

@@ -5,6 +5,117 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+type GifItem = {
+    id: string;
+    thumbnail?: string;
+};
+
+// Video Schema Component
+function VideoSchema({ id }: { id: string }) {
+    const formattedId = id
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, (str) => str.toUpperCase())
+        .trim();
+
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        'name': formattedId,
+        'description': `Watch ${formattedId} - Free adult video on TheLittleSlush`,
+        'thumbnailUrl': `https://thumbs44.redgifs.com/${id}-mobile.jpg`,
+        'uploadDate': new Date().toISOString(),
+        'contentUrl': `https://www.redgifs.com/watch/${id}`,
+        'embedUrl': `https://www.redgifs.com/ifr/${id}`,
+        'publisher': {
+            '@type': 'Organization',
+            'name': 'TheLittleSlush',
+            'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://www.thelittleslush.fun/logo.png'
+            }
+        },
+        'isFamilyFriendly': false,
+        'inLanguage': 'en'
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}
+
+// Breadcrumb Component
+function Breadcrumbs({ videoId }: { videoId: string }) {
+    return (
+        <nav className="breadcrumbs watch-breadcrumbs" aria-label="Breadcrumb">
+            <ol itemScope itemType="https://schema.org/BreadcrumbList">
+                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                    <Link href="/" itemProp="item">
+                        <span itemProp="name">Home</span>
+                    </Link>
+                    <meta itemProp="position" content="1" />
+                    <span className="breadcrumb-separator">›</span>
+                </li>
+                <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                    <span itemProp="name" className="breadcrumb-current">Watch Video</span>
+                    <meta itemProp="position" content="2" />
+                </li>
+            </ol>
+        </nav>
+    );
+}
+
+// Related Videos Component
+function RelatedVideos({ currentId }: { currentId: string }) {
+    const [relatedGifs, setRelatedGifs] = useState<GifItem[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRelated = async () => {
+            try {
+                const res = await fetch('/api/gifs?page=1&search=');
+                if (res.ok) {
+                    const data = await res.json();
+                    // Filter out current video and get 6 related
+                    const filtered = data.gifs
+                        .filter((g: GifItem) => g.id !== currentId)
+                        .slice(0, 6);
+                    setRelatedGifs(filtered);
+                }
+            } catch (err) {
+                console.error('Failed to fetch related videos');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchRelated();
+    }, [currentId]);
+
+    if (loading || relatedGifs.length === 0) return null;
+
+    return (
+        <div className="related-videos-section">
+            <h3>Related Videos</h3>
+            <div className="related-videos-grid">
+                {relatedGifs.map((gif) => (
+                    <Link key={gif.id} href={`/watch/${gif.id}`} className="related-video-card">
+                        <img
+                            src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://thumbs44.redgifs.com/${gif.id}-mobile.jpg`)}`}
+                            alt="Related video"
+                            loading="lazy"
+                        />
+                        <div className="related-video-overlay">
+                            <span>▶</span>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 // 728x90 Leaderboard Banner Ad Component
 function LeaderboardAd() {
     const [isWideEnough, setIsWideEnough] = useState(false);
@@ -102,6 +213,9 @@ export default function WatchClient() {
 
     return (
         <>
+            {/* Video Schema JSON-LD */}
+            <VideoSchema id={id} />
+
             {/* Age Verification Modal */}
             {showAgeModal && (
                 <div className="age-modal-overlay">
@@ -139,9 +253,12 @@ export default function WatchClient() {
                             ← Back
                         </button>
                         <Link href="/" className="home-link" style={{ display: 'flex', alignItems: 'center' }}>
-                            <Image src="/logo.png" alt="thelittleslush.fun" width={180} height={40} style={{ objectFit: 'contain', height: '32px', width: 'auto' }} />
+                            <Image src="/logo.png" alt="TheLittleSlush" width={180} height={40} style={{ objectFit: 'contain', height: '32px', width: 'auto' }} />
                         </Link>
                     </nav>
+
+                    {/* Breadcrumbs */}
+                    <Breadcrumbs videoId={id} />
 
                     {/* Top Leaderboard Ad */}
                     <LeaderboardAd />
@@ -149,13 +266,16 @@ export default function WatchClient() {
                     <div className="video-wrapper">
                         <iframe
                             src={`https://www.redgifs.com/ifr/${id}?controls=1&autoplay=1`}
-                            title={`Watch ${id} - Adult Video on TheLittleSlush`}
+                            title={`Watch Adult Video on TheLittleSlush`}
                             frameBorder="0"
                             scrolling="no"
                             allowFullScreen
                             className="video-player"
                         />
                     </div>
+
+                    {/* Related Videos Section */}
+                    <RelatedVideos currentId={id} />
 
                     {/* Below Video Ads and CTA */}
                     <div className="watch-below-video">

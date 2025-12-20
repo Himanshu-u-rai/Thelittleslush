@@ -20,19 +20,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
     ];
 
-    // Popular categories/tags for SEO (creates indexable category pages)
+    // Category landing pages (SEO optimized)
     const popularCategories = [
         'amateur', 'asian', 'blonde', 'brunette', 'redhead',
         'teen', 'milf', 'latina', 'ebony', 'hentai',
         'cosplay', 'homemade', 'creampie', 'anal', 'pov',
-        'lesbian', 'threesome', 'blowjob', 'cumshot', 'hardcore'
+        'lesbian', 'threesome', 'blowjob', 'cumshot', 'hardcore',
+        'big-tits', 'petite', 'curvy', 'pawg', 'bbc'
     ];
 
     const categoryPages: MetadataRoute.Sitemap = popularCategories.map((category) => ({
-        url: `${baseUrl}/?search=${encodeURIComponent(category)}`,
+        url: `${baseUrl}/category/${category}`,
         lastModified: currentDate,
         changeFrequency: 'daily' as const,
-        priority: 0.8,
+        priority: 0.9,
     }));
 
     return [...staticPages, ...categoryPages];
