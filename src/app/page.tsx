@@ -280,18 +280,19 @@ function FilterBar({
           Premium 🔥
         </a>
         {availableTags.map((cat) => (
-          <Link
+          <div
             key={cat}
-            href={`/category/${cat.toLowerCase()}`}
             className={`filter-chip ${query.toLowerCase() === cat.toLowerCase() ? 'active' : ''}`}
-            onClick={(e) => {
-              if (isDragging) {
-                e.preventDefault();
+            onClick={() => {
+              if (!isDragging) {
+                setQuery(cat);
+                setSearchInput(cat);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
           >
             {cat}
-          </Link>
+          </div>
         ))}
       </div>
 

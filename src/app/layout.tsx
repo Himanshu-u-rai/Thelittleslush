@@ -155,23 +155,17 @@ export default function RootLayout({
         <meta name="rating" content="RTA-5042-1996-1400-1577-RTA" />
 
         {/* ICRA Label (deprecated but still recognized by some filters) */}
-        <meta httpEquiv="pics-label" content='(pics-1.1 "http://www.icra.org/ratingsv02.html" l gen true for "https://www.thelittleslush.fun" r (nz 1 vz 1 lz 1 oz 1 cb 1))' />
+        <meta httpEquiv="pics-label" content='(pics-1.1 "http://www.icra.org/ratingsv02.html" l gen true for "https://thelittleslush.fun" r (nz 1 vz 1 lz 1 oz 1 cb 1))' />
 
         {/* Prevent archiving sensitive content */}
         <meta name="robots" content="index, follow, max-image-preview:large" />
 
-        {/* Preconnect to external resources for Core Web Vitals */}
+        {/* Preconnect to external resources for performance */}
         <link rel="preconnect" href="https://www.redgifs.com" />
         <link rel="preconnect" href="https://api.redgifs.com" />
         <link rel="preconnect" href="https://thumbs44.redgifs.com" />
-        <link rel="preconnect" href="https://media.redgifs.com" />
         <link rel="dns-prefetch" href="https://www.redgifs.com" />
         <link rel="dns-prefetch" href="https://api.redgifs.com" />
-        <link rel="dns-prefetch" href="https://thumbs44.redgifs.com" />
-        <link rel="dns-prefetch" href="https://media.redgifs.com" />
-
-        {/* Preload critical resources */}
-        <link rel="preload" href="/logo.png" as="image" />
 
         {/* Structured Data */}
         <script
