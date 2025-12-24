@@ -120,34 +120,83 @@ function MediumRectangleAd({ adIndex }: { adIndex: number }) {
   );
 }
 
+// Skeleton Loading Card Component
+function SkeletonCard() {
+  return (
+    <div className="masonry-item skeleton-card">
+      <div className="skeleton-container">
+        <div className="skeleton-shimmer"></div>
+        <div className="skeleton-play-icon">
+          <div className="skeleton-circle"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Footer Component
+function Footer() {
+  return (
+    <footer className="main-footer">
+      <div className="footer-content">
+        <div className="footer-brand">
+          <h2>TheLittleSlush</h2>
+          <p>
+            The premium destination for trending adult content. Millions of GIFs and videos updated daily for your entertainment.
+          </p>
+        </div>
+        <div className="footer-links">
+          <h3>Categories</h3>
+          <ul>
+            <li><Link href="/?search=Amateur">Amateur</Link></li>
+            <li><Link href="/?search=Asian">Asian</Link></li>
+            <li><Link href="/?search=Teen">Teen</Link></li>
+            <li><Link href="/?search=Hentai">Hentai</Link></li>
+          </ul>
+        </div>
+        <div className="footer-links">
+          <h3>Support</h3>
+          <ul>
+            <li><Link href="/policies">DMCA Policy</Link></li>
+            <li><Link href="/policies">Terms of Service</Link></li>
+            <li><Link href="/policies">2257 Compliance</Link></li>
+            <li><Link href="/policies">Privacy Policy</Link></li>
+          </ul>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <p>© {new Date().getFullYear()} thelittleslush.fun. All rights reserved.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <span className="rta-logo">RTA</span>
+          <span>18+ Adult Content</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 // Back to Top Button Component
 function BackToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const checkScroll = () => {
-      // Get scroll position from body (the actual scroll container)
-      const scrollTop = document.body.scrollTop;
-      setIsVisible(scrollTop > 300);
+      const scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+      setIsVisible(scrollTop > 600);
     };
 
-    // Attach listener directly to body
-    const body = document.body;
-    body.addEventListener('scroll', checkScroll, { passive: true });
-
-    // Also poll every 500ms as fallback
-    const interval = setInterval(checkScroll, 500);
-
-    // Check initial state
-    checkScroll();
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    // Also check body scroll as some layouts use that
+    document.body.addEventListener('scroll', checkScroll, { passive: true });
 
     return () => {
-      body.removeEventListener('scroll', checkScroll);
-      clearInterval(interval);
+      window.removeEventListener('scroll', checkScroll);
+      document.body.removeEventListener('scroll', checkScroll);
     };
   }, []);
 
   const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     document.body.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -157,7 +206,9 @@ function BackToTopButton() {
       className={`back-to-top ${isVisible ? 'visible' : ''}`}
       aria-label="Back to top"
     >
-      ↑
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 15l-6-6-6 6" />
+      </svg>
     </button>
   );
 }
@@ -483,9 +534,17 @@ function VideoCard({ gif }: { gif: GifItem }) {
             width: '100%',
             height: '100%',
             zIndex: 10,
-            cursor: 'pointer'
+            cursor: 'pointer',
+            background: isPlaying ? 'transparent' : 'rgba(0,0,0,0.2)',
+            transition: 'background 0.3s ease'
           }}
-        />
+        >
+          {!isPlaying && (
+            <div className="play-overlay">
+              <div className="play-icon" style={{ opacity: 0.8 }}>▶</div>
+            </div>
+          )}
+        </Link>
       </div>
     </div>
   );
@@ -645,21 +704,45 @@ export default function Home() {
       {isAgeVerified && (
         <main>
           <header className="header">
-            <div className="logo" onClick={() => { setQuery(''); setSearchInput(''); }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <Image src="/logo.png" alt="thelittleslush.fun" width={220} height={50} style={{ objectFit: 'contain', height: '40px', width: 'auto' }} priority />
+            <div
+              className="logo"
+              onClick={() => { setQuery(''); setSearchInput(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <Image
+                src="/logo.png"
+                alt="thelittleslush.fun"
+                width={120}
+                height={28}
+                style={{ objectFit: 'contain', height: '22px', width: 'auto' }}
+                priority
+              />
             </div>
             <form className="search-form" onSubmit={handleSearch}>
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search..."
+                placeholder="Search trending GIFs & videos..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  className="search-clear-btn"
+                  onClick={() => {
+                    setSearchInput('');
+                    setQuery('');
+                  }}
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
             </form>
             <Link href="/policies" className="policies-btn">
               <span className="policies-btn-icon">📋</span>
-              <span>User Policies</span>
+              <span>Policies</span>
             </Link>
           </header>
 
@@ -675,6 +758,15 @@ export default function Home() {
             <LeaderboardBannerAd adIndex={0} />
 
             <div className="masonry-grid">
+              {/* Show skeleton cards during initial load */}
+              {gifs.length === 0 && loading && (
+                <>
+                  {[...Array(8)].map((_, i) => (
+                    <SkeletonCard key={`skeleton-${i}`} />
+                  ))}
+                </>
+              )}
+
               {gifs.filter(g => !query || g.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))).flatMap((gif, index) => {
                 const items = [<VideoCard key={`${gif.id}-${index}`} gif={gif} />];
                 // Insert ads at regular intervals
@@ -725,6 +817,7 @@ export default function Home() {
               )}
             </div>
           </div>
+          <Footer />
           <BackToTopButton />
         </main>
       )}

@@ -16,8 +16,10 @@ const geistMono = Geist_Mono({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
-  themeColor: "#0a0a0a",
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: false,
+  themeColor: "#050505",
 };
 
 // Comprehensive SEO Metadata for Adult Site

@@ -136,10 +136,16 @@ export default function WatchPage() {
                 <div className="watch-container">
                     <nav className="watch-nav">
                         <button onClick={() => router.back()} className="back-button">
-                            ← Back
+                            Back
                         </button>
-                        <Link href="/" className="home-link" style={{ display: 'flex', alignItems: 'center' }}>
-                            <Image src="/logo.png" alt="thelittleslush.fun" width={180} height={40} style={{ objectFit: 'contain', height: '32px', width: 'auto' }} />
+                        <Link href="/" className="logo" style={{ display: 'flex', alignItems: 'center' }}>
+                            <Image
+                                src="/logo.png"
+                                alt="thelittleslush.fun"
+                                width={100}
+                                height={24}
+                                style={{ objectFit: 'contain', height: '18px', width: 'auto' }}
+                            />
                         </Link>
                     </nav>
 
