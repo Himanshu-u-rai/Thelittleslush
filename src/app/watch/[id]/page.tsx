@@ -154,7 +154,7 @@ export default function WatchPage() {
 
                     <div className="video-wrapper">
                         <iframe
-                            src={`https://www.redgifs.com/ifr/${id}?controls=1&autoplay=1`}
+                            src={`https://www.redgifs.com/ifr/${id}?controls=1&autoplay=1&muted=1`}
                             title={`Watch ${id} - Adult Video on TheLittleSlush`}
                             frameBorder="0"
                             scrolling="no"

@@ -26,11 +26,12 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.95);
-  z-index: 9999;
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  pointer-events: auto;
 }
 
 .age-modal {
@@ -44,6 +45,9 @@
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6),
     0 0 60px rgba(249, 24, 128, 0.15);
   animation: modalFadeIn 0.4s ease-out;
+  pointer-events: auto;
+  position: relative;
+  z-index: 100000;
 }
 
 @keyframes modalFadeIn {
@@ -101,6 +105,9 @@
   border: none;
   transition: all 0.2s ease;
   min-width: 140px;
+  pointer-events: auto;
+  position: relative;
+  z-index: 100001;
 }
 
 .age-btn-enter {
@@ -213,6 +220,76 @@
 @media (min-width: 500px) {
   .medium-rect-ad {
     display: none !important;
+  }
+}
+
+/* Fixed Bottom Banner - Desktop Only with Two Ads */
+.fixed-bottom-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-height: 90px;
+  background: rgba(10, 10, 10, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(10px);
+  padding: 10px;
+}
+
+.bottom-banner-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  max-width: 1500px;
+  width: 100%;
+}
+
+.bottom-ad-slot {
+  min-width: 728px;
+  min-height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hide on mobile */
+@media (max-width: 767px) {
+  .fixed-bottom-banner {
+    display: none !important;
+  }
+}
+
+/* Stack ads vertically on smaller desktops */
+@media (min-width: 768px) and (max-width: 1500px) {
+  .bottom-banner-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fixed-bottom-banner {
+    min-height: 200px;
+  }
+
+  .main-content {
+    padding-bottom: 220px;
+  }
+}
+
+/* Side by side on larger screens */
+@media (min-width: 1501px) {
+  .bottom-banner-container {
+    flex-direction: row;
+  }
+
+  .main-content {
+    padding-bottom: 110px;
   }
 }
 
@@ -825,6 +902,24 @@ a {
     transform: rotate(360deg);
   }
 }
+
+/* Thumbnail Loading Animation - Pulsing Blur */
+.thumbnail-loading {
+  animation: thumbnailPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes thumbnailPulse {
+
+  0%,
+  100% {
+    filter: blur(2px) brightness(0.9);
+  }
+
+  50% {
+    filter: blur(6px) brightness(0.7);
+  }
+}
+
 
 /* Skeleton Loading Card */
 .skeleton-card {

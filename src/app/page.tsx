@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
+import FixedBottomBanner from './components/FixedBottomBanner';
 
 type GifItem = {
   id: string;
@@ -134,46 +135,7 @@ function SkeletonCard() {
   );
 }
 
-// Footer Component
-function Footer() {
-  return (
-    <footer className="main-footer">
-      <div className="footer-content">
-        <div className="footer-brand">
-          <h2>TheLittleSlush</h2>
-          <p>
-            The premium destination for trending adult content. Millions of GIFs and videos updated daily for your entertainment.
-          </p>
-        </div>
-        <div className="footer-links">
-          <h3>Categories</h3>
-          <ul>
-            <li><Link href="/?search=Amateur">Amateur</Link></li>
-            <li><Link href="/?search=Asian">Asian</Link></li>
-            <li><Link href="/?search=Teen">Teen</Link></li>
-            <li><Link href="/?search=Hentai">Hentai</Link></li>
-          </ul>
-        </div>
-        <div className="footer-links">
-          <h3>Support</h3>
-          <ul>
-            <li><Link href="/policies">DMCA Policy</Link></li>
-            <li><Link href="/policies">Terms of Service</Link></li>
-            <li><Link href="/policies">2257 Compliance</Link></li>
-            <li><Link href="/policies">Privacy Policy</Link></li>
-          </ul>
-        </div>
-      </div>
-      <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} thelittleslush.fun. All rights reserved.</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <span className="rta-logo">RTA</span>
-          <span>18+ Adult Content</span>
-        </div>
-      </div>
-    </footer>
-  );
-}
+
 
 // Back to Top Button Component
 function BackToTopButton() {
@@ -364,8 +326,10 @@ function FilterBar({
 function VideoCard({ gif }: { gif: GifItem }) {
   const [isLoaded, setIsLoaded] = useState(false); // Should the iframe exist in DOM?
   const [isPlaying, setIsPlaying] = useState(false); // Should the iframe be visible and playing?
+  const [iframeLoaded, setIframeLoaded] = useState(false); // Has the iframe finished loading?
   const [isMobile, setIsMobile] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Check if mobile based on screen width (matches CSS breakpoint)
@@ -376,8 +340,8 @@ function VideoCard({ gif }: { gif: GifItem }) {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // For mobile: use intersection observer to auto-play when in view
-    if (cardRef.current) {
+    // For mobile ONLY: use intersection observer to auto-play when in view
+    if (cardRef.current && window.innerWidth <= 500) {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -388,6 +352,10 @@ function VideoCard({ gif }: { gif: GifItem }) {
               // Unload when scrolled away to save memory
               setIsLoaded(false);
               setIsPlaying(false);
+              setIframeLoaded(false);
+              if (loadTimeoutRef.current) {
+                clearTimeout(loadTimeoutRef.current);
+              }
             }
           });
         },
@@ -401,11 +369,42 @@ function VideoCard({ gif }: { gif: GifItem }) {
       return () => {
         observer.disconnect();
         window.removeEventListener('resize', checkMobile);
+        if (loadTimeoutRef.current) {
+          clearTimeout(loadTimeoutRef.current);
+        }
       };
     }
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
+      }
+    };
   }, []);
+
+  // Set a timeout when iframe starts loading
+  useEffect(() => {
+    if (isLoaded && isPlaying && !iframeLoaded) {
+      // Fallback: mark as loaded after 2 seconds if onLoad doesn't fire
+      loadTimeoutRef.current = setTimeout(() => {
+        setIframeLoaded(true);
+      }, 2000);
+    }
+
+    return () => {
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
+      }
+    };
+  }, [isLoaded, isPlaying, iframeLoaded]);
+
+  const handleIframeLoad = () => {
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+    }
+    setIframeLoaded(true);
+  };
 
   // MOBILE VIEW: Simple layout with iframe and tap-to-navigate
   if (isMobile) {
@@ -415,18 +414,19 @@ function VideoCard({ gif }: { gif: GifItem }) {
           {/* Iframe loads when in viewport */}
           {isLoaded && (
             <iframe
-              src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
+              src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1&muted=1`}
               title={`RedGIFs ${gif.id}`}
               loading="eager"
               allowFullScreen
               scrolling="no"
+              onLoad={handleIframeLoad}
               style={{
                 pointerEvents: 'none',
                 width: '100%',
                 height: '100%',
                 border: 'none',
                 opacity: 1,
-                zIndex: 1
+                zIndex: 2
               }}
             />
           )}
@@ -471,43 +471,61 @@ function VideoCard({ gif }: { gif: GifItem }) {
       ref={cardRef}
       className="masonry-item"
       onMouseEnter={() => { setIsLoaded(true); setIsPlaying(true); }}
-      onMouseLeave={() => setIsPlaying(false)}
+      onMouseLeave={() => {
+        setIsPlaying(false);
+        setIframeLoaded(false);
+        if (loadTimeoutRef.current) {
+          clearTimeout(loadTimeoutRef.current);
+        }
+      }}
     >
       <div className="iframe-container" style={{ position: 'relative' }}>
         {isLoaded && (
           <iframe
-            src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1`}
+            src={`https://www.redgifs.com/ifr/${gif.id}?controls=0&autoplay=1&muted=1`}
             title={`RedGIFs ${gif.id}`}
             loading="eager"
             allowFullScreen
             scrolling="no"
+            onLoad={handleIframeLoad}
             style={{
               pointerEvents: 'none',
+              position: 'absolute',
+              top: 0,
+              left: 0,
               width: '100%',
               height: '100%',
               border: 'none',
-              opacity: isPlaying ? 1 : 0,
+              opacity: (isPlaying && iframeLoaded) ? 1 : 0,
               transition: 'opacity 0.3s ease',
-              zIndex: isPlaying ? 2 : 1
+              zIndex: (isPlaying && iframeLoaded) ? 10 : 1
             }}
           />
         )}
 
-        {/* Thumbnail - only shown on desktop */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          opacity: isPlaying ? 0 : 1,
-          transition: 'opacity 0.3s ease',
-          zIndex: 1
-        }}>
+        {/* Thumbnail - shown until iframe loads or when not playing */}
+        <div
+          className={isPlaying && !iframeLoaded ? 'thumbnail-loading' : ''}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: (isPlaying && iframeLoaded) ? 0 : 1,
+            transition: 'opacity 0.3s ease',
+            zIndex: 1
+          }}
+        >
           <img
             src={`/api/image-proxy?url=${encodeURIComponent(gif.thumbnail || `https://media.redgifs.com/${gif.id}-mobile.jpg`)}`}
             alt={gif.id}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              backgroundColor: '#1a1a1a'
+            }}
             loading="lazy"
             onError={(e) => {
               const img = e.currentTarget;
@@ -518,10 +536,18 @@ function VideoCard({ gif }: { gif: GifItem }) {
               img.parentElement?.appendChild(placeholder);
             }}
           />
-          {/* Play icon overlay on thumbnail */}
-          <div className="play-overlay">
-            <div className="play-icon">▶</div>
-          </div>
+          {/* Loading indicator overlay */}
+          {isPlaying && !iframeLoaded && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 2
+            }}>
+              <div className="loading-spinner"></div>
+            </div>
+          )}
         </div>
 
         {/* Click to watch overlay - desktop */}
@@ -535,15 +561,10 @@ function VideoCard({ gif }: { gif: GifItem }) {
             height: '100%',
             zIndex: 10,
             cursor: 'pointer',
-            background: isPlaying ? 'transparent' : 'rgba(0,0,0,0.2)',
+            background: (isPlaying && iframeLoaded) ? 'transparent' : 'rgba(0,0,0,0.2)',
             transition: 'background 0.3s ease'
           }}
         >
-          {!isPlaying && (
-            <div className="play-overlay">
-              <div className="play-icon" style={{ opacity: 0.8 }}>▶</div>
-            </div>
-          )}
         </Link>
       </div>
     </div>
@@ -682,13 +703,21 @@ export default function Home() {
             <div className="age-modal-buttons">
               <button
                 className="age-btn age-btn-enter"
-                onClick={() => handleAgeConfirm(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleAgeConfirm(true);
+                }}
               >
                 Yes, I am 18+
               </button>
               <button
                 className="age-btn age-btn-leave"
-                onClick={() => handleAgeConfirm(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleAgeConfirm(false);
+                }}
               >
                 No, Leave
               </button>
@@ -817,8 +846,8 @@ export default function Home() {
               )}
             </div>
           </div>
-          <Footer />
           <BackToTopButton />
+          <FixedBottomBanner />
         </main>
       )}
     </>
